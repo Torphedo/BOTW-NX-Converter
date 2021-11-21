@@ -1,12 +1,10 @@
-@echo off
-mkdir original
-copy *.sbactorpack original > nul
-:start
-for %%f in (*.sbactorpack) do (
+rem @echo off
+:HKX
+for /r . %%f in (*.sbactorpack) do (
 	sarc x --directory temp "%%f"
-	if errorlevel 1 (pip install sarc&goto :start)
+	if errorlevel 1 (pip install sarc&goto :HKX)
 	rem This (hopefully) stops sarc from being a dependency
-	del %%f
+	del "%%f"
 	
 	if not exist HKXConvert.exe (
 		echo Downloading HKXConverter...
