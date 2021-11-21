@@ -1,4 +1,4 @@
-rem @echo off
+@echo off
 :HKX
 for /r . %%f in (*.sbactorpack) do (
 	sarc x --directory temp "%%f"
@@ -13,10 +13,12 @@ for /r . %%f in (*.sbactorpack) do (
 	rem Searches recursively for files with an extension starting with *.hk,
 	rem then converts them to json and back to NX using HKXConvert.
 	for /r . %%x in (*.hk*) do (
+		echo.
 		echo Converting to JSON...
 		HKXConvert.exe hkx2json "%%x" hkcl.json
 		del "%%x"
 		echo Converting to HKCL...
+		echo.
 		HKXConvert.exe json2hkx --nx hkcl.json "%%x"
 		del hkcl.json
 	)
@@ -24,5 +26,4 @@ for /r . %%f in (*.sbactorpack) do (
 	sarc c --be temp "%%f"
 	rmdir temp /S /Q
 )
-pause
 if exist "HKXConvert.exe" del HKXConvert.exe
