@@ -8,12 +8,12 @@ set bnpname=%bnpname:.bnp=-NX.bnp%
 rem ^ This turns "*.bnp" into "*-NX.bnp", which is then set as the filename of the ported BNP in the final step.
 echo Extracting BNP...
 echo.
-curl -s -o 7z.exe https://raw.githubusercontent.com/NiceneNerd/BCML/master/bcml/helpers/7z.exe
-curl -s -o 7z.dll https://raw.githubusercontent.com/NiceneNerd/BCML/master/bcml/helpers/7z.dll
+if not exist 7z.exe (curl -s -o 7z.exe https://raw.githubusercontent.com/NiceneNerd/BCML/master/bcml/helpers/7z.exe)
+if not exist 7z.dll (curl -s -o 7z.dll https://raw.githubusercontent.com/NiceneNerd/BCML/master/bcml/helpers/7z.dll)
+pause
 7z x -oextracted\ %1 > nul
-echo Downloading BfresConverter...
 echo.
-curl -L -s -o bfresconverter.zip https://gamebanana.com/dl/485626
+if not exist bfresconverter.zip (echo Downloading BfresConverter...&curl -L -s -o bfresconverter.zip https://gamebanana.com/dl/485626)
 7z x -obfresconverter\ bfresconverter.zip > nul
 del bfresconverter.zip
 mkdir bfresconverter\batch\
@@ -27,8 +27,6 @@ rem BCML's converter doesn't like options right now, so I'm moving it off to the
 rem Hopefully the recent PR on the topic fixes this.
 if exist "extracted\options" (move "extracted\options" .) > nul
 del %1
-del 7z.exe
-del 7z.dll
 rem ^ The "> nul" silences the command so that it doesn't keep logging that it successfully moved things around.
 
 echo Running BCML auto-conversion...
@@ -115,12 +113,14 @@ if exist "HKXConvert.exe" del HKXConvert.exe
 echo.
 echo Finished automatic conversion.
 echo Zipping new BNP...
-curl -s -o 7z.exe https://raw.githubusercontent.com/NiceneNerd/BCML/master/bcml/helpers/7z.exe
-curl -s -o 7z.dll https://raw.githubusercontent.com/NiceneNerd/BCML/master/bcml/helpers/7z.dll
+copy ..\7z.exe . > nul
+copy ..\7z.dll . > nul
 7z a %bnpname% 01007EF00011E000 logs info.json > nul
 move %bnpname% .. > nul
 cd ..
 rmdir /S /Q extracted\
+del 7z.exe
+del 7z.dll
 pause
 cls
 echo Automatic conversion completed. BfresConverter can make mistakes, so take a look at the original file
