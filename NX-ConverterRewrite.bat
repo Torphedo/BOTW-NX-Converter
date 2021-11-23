@@ -10,10 +10,8 @@ echo Extracting BNP...
 echo.
 if not exist 7z.exe (curl -s -o 7z.exe https://raw.githubusercontent.com/NiceneNerd/BCML/master/bcml/helpers/7z.exe)
 if not exist 7z.dll (curl -s -o 7z.dll https://raw.githubusercontent.com/NiceneNerd/BCML/master/bcml/helpers/7z.dll)
-pause
 7z x -oextracted\ %1 > nul
-echo.
-if not exist bfresconverter.zip (echo Downloading BfresConverter...&curl -L -s -o bfresconverter.zip https://gamebanana.com/dl/485626)
+if not exist bfresconverter.zip (echo Downloading BfresConverter...&echo.&curl -L -s -o bfresconverter.zip https://gamebanana.com/dl/485626)
 7z x -obfresconverter\ bfresconverter.zip > nul
 del bfresconverter.zip
 mkdir bfresconverter\batch\
@@ -30,34 +28,18 @@ del %1
 rem ^ The "> nul" silences the command so that it doesn't keep logging that it successfully moved things around.
 
 echo Running BCML auto-conversion...
-rem Calls BCML in Python to auto-convert the remaining files.
-echo from pathlib import Path > convert.py
-echo from bcml.dev import convert_mod >> convert.py
-echo def main():  >> convert.py
-echo     warnings = convert_mod(Path(r"%CD%\extracted"), False, True) >> convert.py
-echo if __name__ == "__main__":  >> convert.py
-echo     main()  >> convert.py
+call :print_convert-py
 convert.py
 del convert.py
+
 echo.
 echo Converting actorinfo...
 echo.
-rem Multiplies all instSize entries in actorinfo log by 1.6, then puts it in the auto-converted mod.
-rem This is rather inaccurate, but I don't know what I'm doing enough to implement a more accurate
-rem version. I was going to use BCML's implementation, but it seems to break frequently. Will file a
-rem GitHub issue later.
-if not exist "actorinfo.yml" (goto :dumb_skip)
-rem I hate this, for some reason batch really hates it when I print this whole python script inside the if statement.
-echo from oead import byml, S32 > actorinfo.py
-echo actorinfo = byml.from_text(open(r"%CD%\actorinfo.yml", "r", encoding="utf-8").read())  >> actorinfo.py
-echo for _, actor in actorinfo.items(): >> actorinfo.py
-echo     if "instSize" in actor: >> actorinfo.py
-echo         actor["instSize"] = S32(int(actor["instSize"].v * 1.6))  >> actorinfo.py
-echo open(r"%CD%\actorinfo.yml", "w", encoding="utf-8").write(byml.to_text(actorinfo))  >> actorinfo.py
+if exist "actorinfo.yml" (call :print_actorinfo-py)
 actorinfo.py
 del actorinfo.py
+
 move actorinfo.yml extracted\logs\ > nul
-:dumb_skip
 cd bfresconverter\batch\
 echo Attempting automatic bfres conversion...
 echo.
@@ -128,6 +110,29 @@ echo and make sure all your bfres files are accounted for. If some didn't get co
 echo through BfresConverter manually.
 pause
 exit
+
+:print_convert-py
+rem Calls BCML in Python to auto-convert the remaining files.
+echo from pathlib import Path > convert.py
+echo from bcml.dev import convert_mod >> convert.py
+echo def main():  >> convert.py
+echo     warnings = convert_mod(Path(r"%CD%\extracted"), False, True) >> convert.py
+echo if __name__ == "__main__":  >> convert.py
+echo     main()  >> convert.py
+exit /b
+
+:print_actorinfo-py
+rem Multiplies all instSize entries in actorinfo log by 1.6, then puts it in the auto-converted mod.
+rem This is rather inaccurate, but I don't know what I'm doing enough to implement a more accurate
+rem version. I was going to use BCML's implementation, but it seems to break frequently. Will file a
+rem GitHub issue later.
+echo from oead import byml, S32 > actorinfo.py
+echo actorinfo = byml.from_text(open(r"%CD%\actorinfo.yml", "r", encoding="utf-8").read())  >> actorinfo.py
+echo for _, actor in actorinfo.items(): >> actorinfo.py
+echo     if "instSize" in actor: >> actorinfo.py
+echo         actor["instSize"] = S32(int(actor["instSize"].v * 1.6))  >> actorinfo.py
+echo open(r"%CD%\actorinfo.yml", "w", encoding="utf-8").write(byml.to_text(actorinfo))  >> actorinfo.py
+exit /b
 
 :bfresparam
 set params=
