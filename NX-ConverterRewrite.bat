@@ -14,15 +14,13 @@ if not exist 7z.dll (curl -s -o 7z.dll https://raw.githubusercontent.com/NiceneN
 if not exist bfresconverter.zip (echo Downloading BfresConverter...&echo.&curl -L -s -o bfresconverter.zip https://gamebanana.com/dl/485626)
 7z x -obfresconverter\ bfresconverter.zip > nul
 del bfresconverter.zip
-mkdir bfresconverter\batch\
-rem Moves all files that BCML can't auto-convert out of the way
-echo Rearranging files...
-echo.
+mkdir bfresconverter\batch-temp\
+rem Preparing extracted\ to be passed to BCML auto-conversion
+for /r . %%z in (*.sbfres) do (move "%%z" bfresconverter\batch-temp > nul)
+for /r . %%y in (*.sbitemico) do (move "%%y" bfresconverter\batch-temp > nul)
 if exist "extracted\logs\actorinfo.yml" (move "extracted\logs\actorinfo.yml" .) > nul
-if exist "extracted\content\Model" (move "extracted\content\Model" bfresconverter\batch\) > nul
-if exist "extracted\content\UI" (move "extracted\content\UI" bfresconverter\batch\) > nul
 rem BCML's converter doesn't like options right now, so I'm moving it off to the side.
-rem Hopefully the recent PR on the topic fixes this.
+rem This should be fixed once BCML 3.7.1 is published.
 if exist "extracted\options" (move "extracted\options" .) > nul
 del %1
 rem ^ The "> nul" silences the command so that it doesn't keep logging that it successfully moved things around.
@@ -38,27 +36,15 @@ echo.
 if exist "actorinfo.yml" (call :print_actorinfo-py)
 actorinfo.py
 del actorinfo.py
-
 move actorinfo.yml extracted\logs\ > nul
-cd bfresconverter\batch\
+
+cd bfresconverter\batch-temp\
 echo Attempting automatic bfres conversion...
 echo.
-if exist "Model" (
-	move Model\*.sbfres . > nul
-	set filetype=sbfres
-	call :bfresparam
-	rem ^ This adds all sbfres files in the current dir to a variable and passes them to bfresconverter.
-	move SwitchConverted\*.sbfres Model\ > nul
-	move Model ..\..\extracted\01007EF00011E000\romfs\ > nul
-)
-if exist "UI" (
-	move UI\StockItem\*.sbitemico . > nul
-	set filetype=sbitemico
-	call :bfresparam
-	rem This gets a little confusing, but I'm just putting all the newly converted assets back into the rest of the mod files.
-	move SwitchConverted\*.sbitemico UI\StockItem\ > nul
-	move UI ..\..\extracted\01007EF00011E000\romfs\ > nul
-)
+call :bfresparam
+rem ^ This adds all files in the current dir to a variable and passes them to bfresconverter.
+move SwitchConverted\*.sbfres ..\..\extracted\01007EF00011E000\romfs\Model > nul
+move SwitchConverted\*.sbitemico ..\..\extracted\01007EF00011E000\romfs\UI\StockItem > nul
 cd ..\..
 rem I just discovered I can do ..\.. to go up 2 levels, and it's awesome.
 rmdir /Q /S bfresconverter
@@ -138,7 +124,6 @@ exit /b
 set params=
 @for /f %%i in ('dir /b /a-d') do (set params=!params! "%%i")
 ..\BfresPlatformConverter.exe %params%
-del *.%filetype%
 exit /b
 
 :ERROR
