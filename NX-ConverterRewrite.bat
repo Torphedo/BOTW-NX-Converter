@@ -2,7 +2,6 @@
 setlocal ENABLEDELAYEDEXPANSION
 if not exist original\ mkdir original\ > nul
 copy %1 original\ > nul
-if errorlevel = 1 (goto :ERROR)
 set bnpname=%1
 set bnpname=%bnpname:.bnp=-NX.bnp%
 rem ^ This turns "*.bnp" into "*-NX.bnp", which is then set as the filename of the ported BNP in the final step.
@@ -50,6 +49,10 @@ rem I just discovered I can do ..\.. to go up 2 levels, and it's awesome.
 rmdir /Q /S bfresconverter
 cd extracted\
 echo Converting HKX...
+if not exist HKXConvert.exe (
+	echo Downloading HKXConverter...
+	curl -L -# -o HKXConvert.exe https://github.com/krenyy/HKXConvert/releases/download/1.0.1/HKXConvert.exe
+)
 :HKX
 for /r . %%f in (*.sbactorpack) do (
 	sarc x --directory temp "%%f"
@@ -57,10 +60,6 @@ for /r . %%f in (*.sbactorpack) do (
 	rem This (hopefully) stops sarc from being a dependency
 	del "%%f"
 	
-	if not exist HKXConvert.exe (
-		echo Downloading HKXConverter...
-		curl -L -# -o HKXConvert.exe https://github.com/krenyy/HKXConvert/releases/download/1.0.1/HKXConvert.exe
-	)
 	rem Searches recursively for files with an extension starting with *.hk,
 	rem then converts them to json and back to NX using HKXConvert.
 	for /r . %%x in (*.hk*) do (
@@ -74,7 +73,7 @@ for /r . %%f in (*.sbactorpack) do (
 		del hkcl.json
 	)
 	rem Repackage back into SARC
-	sarc c --be temp "%%f"
+	sarc c temp "%%f"
 	rmdir temp /S /Q
 )
 if exist "HKXConvert.exe" del HKXConvert.exe
@@ -125,8 +124,3 @@ set params=
 @for /f %%i in ('dir /b /a-d') do (set params=!params! "%%i")
 ..\BfresPlatformConverter.exe %params%
 exit /b
-
-:ERROR
-rmdir original
-echo Please drag a BNP onto this batch script.
-pause
