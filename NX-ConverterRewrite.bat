@@ -18,9 +18,6 @@ rem Preparing extracted\ to be passed to BCML auto-conversion
 for /r . %%z in (*.sbfres) do (move "%%z" bfresconverter\batch-temp > nul)
 for /r . %%y in (*.sbitemico) do (move "%%y" bfresconverter\batch-temp > nul)
 if exist "extracted\logs\actorinfo.yml" (move "extracted\logs\actorinfo.yml" .) > nul
-rem BCML's converter doesn't like options right now, so I'm moving it off to the side.
-rem This should be fixed once BCML 3.7.1 is published.
-if exist "extracted\options" (move "extracted\options" .) > nul
 del %1
 rem ^ The "> nul" silences the command so that it doesn't keep logging that it successfully moved things around.
 
