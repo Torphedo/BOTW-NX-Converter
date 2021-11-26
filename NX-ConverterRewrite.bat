@@ -105,9 +105,8 @@ exit /b
 
 :print_actorinfo-py
 rem Multiplies all instSize entries in actorinfo log by 1.6, then puts it in the auto-converted mod.
-rem This is rather inaccurate, but I don't know what I'm doing enough to implement a more accurate
-rem version. I was going to use BCML's implementation, but it seems to break frequently. Will file a
-rem GitHub issue later.
+rem This is rather inaccurate, but a more accurate implementation would be way out of this script's
+rem scope. BCML's converter is almost functional, from my understanding it just needs some syntax errors fixed.
 echo from oead import byml, S32 > actorinfo.py
 echo actorinfo = byml.from_text(open(r"%CD%\actorinfo.yml", "r", encoding="utf-8").read())  >> actorinfo.py
 echo for _, actor in actorinfo.items(): >> actorinfo.py
